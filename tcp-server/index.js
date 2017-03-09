@@ -1,13 +1,27 @@
 var net = require('net');
 const os = require('os');
+const readline = require('readline');
+const ansi = require('ansi')
+, cursor = ansi(process.stdout)
 
 var spin = [ "|","/","-","\\" ];
 var spin_idx = 0;
 
 //var HOST = '127.0.0.1';
-var HOST = '10.120.22.78';//'192.168.1.2';
+// var HOST = '10.120.22.78';//'192.168.1.2';//KDA
+var HOST = '192.168.1.9';
 var PORT = 6969;
 
+readline.emitKeypressEvents(process.stdin);
+process.stdin.setRawMode(true);
+
+process.stdin.on('keypress', (str,key)=>{
+  if(str == 'k'){
+    console.log("begin");
+  }
+  console.log("s" + str)
+  console.log("k" + key)
+})
 function parse_packet( data ){
   var packets = data.toString().split('|');
   for(var i = 0; i < packets.length; i++){
@@ -53,3 +67,23 @@ net.createServer(function(sock) {
 }).listen(PORT, HOST);
 
 console.log('Server listening on ' + HOST +':'+ PORT);
+
+// TODO: error handler for when particle closes connection
+function tidy(){
+  sock.close();
+}
+
+process.on('uncaughtException', function(e){
+  // tidy up
+  tidy();
+})
+
+process.on('SIGTERM', function(e){
+  // also tidy
+  tidy();
+})
+
+process.on('SIGINT', function(e){
+  // and again
+  tidy();
+})
