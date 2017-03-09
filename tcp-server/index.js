@@ -15,13 +15,8 @@ var PORT = 6969;
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
 
-process.stdin.on('keypress', (str,key)=>{
-  if(str == 'k'){
-    console.log("begin");
-  }
-  console.log("s" + str)
-  console.log("k" + key)
-})
+
+
 function parse_packet( data ){
   var packets = data.toString().split('|');
   for(var i = 0; i < packets.length; i++){
@@ -37,36 +32,54 @@ function parse_packet( data ){
   }
 }
 
+
+
+var sock = net.createServer();//(socket) => {
+//   socket.end('goodbye\n');
+// }).on('error', (err) => {
+//   // handle errors here
+//   throw err;
+// });
+
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
-net.createServer(function(sock) {
+// var server = net.createServer(function(sock) {
+//
+//     // We have a connection - a socket object is assigned to the connection automatically
+//     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
+//
+//     // Add a 'data' event handler to this instance of socket
+//     sock.on('data', function(data) {
+//
+//         parse_packet(data);
+//         //console.log(os.uptime() + sock.remoteAddress + ': ' + data);
+//         //console.log(os.uptime() + ': ' + data + '\n');
+//         // Write the data back to the socket, the client will receive it as data from the server
+//         //sock.write('You said "' + data + '"');
+//         sock.write(spin[spin_idx]);
+//         spin_idx++;
+//         if(spin_idx > 3){spin_idx = 0;}
+//
+//     });
+//
+//     // Add a 'close' event handler to this instance of socket
+//     sock.on('close', function(data) {
+//         console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
+//     });
+//
+// })//.listen(PORT, HOST);
 
-    // We have a connection - a socket object is assigned to the connection automatically
-    console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
+//console.log('Server listening on ' + HOST +':'+ PORT);
 
-    // Add a 'data' event handler to this instance of socket
-    sock.on('data', function(data) {
+sock.on('data', function(data) {
 
         parse_packet(data);
-        //console.log(os.uptime() + sock.remoteAddress + ': ' + data);
-        //console.log(os.uptime() + ': ' + data + '\n');
-        // Write the data back to the socket, the client will receive it as data from the server
-        //sock.write('You said "' + data + '"');
         sock.write(spin[spin_idx]);
         spin_idx++;
         if(spin_idx > 3){spin_idx = 0;}
 
-    });
-
-    // Add a 'close' event handler to this instance of socket
-    sock.on('close', function(data) {
-        console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
-    });
-
-}).listen(PORT, HOST);
-
-console.log('Server listening on ' + HOST +':'+ PORT);
+});
 
 // TODO: error handler for when particle closes connection
 function tidy(){
@@ -86,4 +99,18 @@ process.on('SIGTERM', function(e){
 process.on('SIGINT', function(e){
   // and again
   tidy();
+})
+
+process.stdin.on('keypress', (str,key)=>{
+  if(str == ' '){
+    if(sock.listening){
+      sock.close();
+      console.log('Closing...');
+    }else{
+      sock.listen(PORT,HOST);
+      console.log('listening on ' + HOST +':'+ PORT)
+    }
+  }
+  //console.log("s" + str)
+  //console.log("k" + key)
 })
