@@ -8,8 +8,8 @@ var spin = [ "|","/","-","\\" ];
 var spin_idx = 0;
 
 //var HOST = '127.0.0.1';
-// var HOST = '10.120.22.78';//'192.168.1.2';//KDA
-var HOST = '192.168.1.9';
+ var HOST = '10.120.22.78';//'192.168.1.2';//KDA
+//var HOST = '192.168.1.9';
 var PORT = 6969;
 
 readline.emitKeypressEvents(process.stdin);
@@ -33,8 +33,8 @@ function parse_packet( data ){
 }
 
 
-
-var sock = net.createServer();//(socket) => {
+// var sock = net.createServer();
+// var (socket) => {
 //   socket.end('goodbye\n');
 // }).on('error', (err) => {
 //   // handle errors here
@@ -44,47 +44,48 @@ var sock = net.createServer();//(socket) => {
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
-// var server = net.createServer(function(sock) {
 //
-//     // We have a connection - a socket object is assigned to the connection automatically
-//     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
-//
-//     // Add a 'data' event handler to this instance of socket
-//     sock.on('data', function(data) {
-//
-//         parse_packet(data);
-//         //console.log(os.uptime() + sock.remoteAddress + ': ' + data);
-//         //console.log(os.uptime() + ': ' + data + '\n');
-//         // Write the data back to the socket, the client will receive it as data from the server
-//         //sock.write('You said "' + data + '"');
-//         sock.write(spin[spin_idx]);
-//         spin_idx++;
-//         if(spin_idx > 3){spin_idx = 0;}
-//
-//     });
-//
-//     // Add a 'close' event handler to this instance of socket
-//     sock.on('close', function(data) {
-//         console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
-//     });
-//
-// })//.listen(PORT, HOST);
+var server = net.createServer(function(sock) {
 
-//console.log('Server listening on ' + HOST +':'+ PORT);
+    // We have a connection - a socket object is assigned to the connection automatically
+    console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
 
-sock.on('data', function(data) {
+    // Add a 'data' event handler to this instance of socket
+    sock.on('data', function(data) {
 
         parse_packet(data);
+        //console.log(os.uptime() + sock.remoteAddress + ': ' + data);
+        //console.log(os.uptime() + ': ' + data + '\n');
+        // Write the data back to the socket, the client will receive it as data from the server
+        //sock.write('You said "' + data + '"');
         sock.write(spin[spin_idx]);
         spin_idx++;
         if(spin_idx > 3){spin_idx = 0;}
 
-});
+    });
+
+    // Add a 'close' event handler to this instance of socket
+    sock.on('close', function(data) {
+        console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
+    });
+
+}).listen(PORT, HOST);
+
+console.log('Server listening on ' + HOST +':'+ PORT);
+
+// sock.on('data', function(data) {
+//
+//         parse_packet(data);
+//         sock.write(spin[spin_idx]);
+//         spin_idx++;
+//         if(spin_idx > 3){spin_idx = 0;}
+//
+// });
 
 // TODO: error handler for when particle closes connection
-function tidy(){
-  sock.close();
-}
+// function tidy(){
+//   sock.close();
+// }
 
 process.on('uncaughtException', function(e){
   // tidy up
@@ -102,15 +103,43 @@ process.on('SIGINT', function(e){
 })
 
 process.stdin.on('keypress', (str,key)=>{
-  if(str == ' '){
-    if(sock.listening){
-      sock.close();
-      console.log('Closing...');
-    }else{
-      sock.listen(PORT,HOST);
-      console.log('listening on ' + HOST +':'+ PORT)
-    }
+
+  if(str == 'g'){
+    server.write("G");
   }
+  if(str == 'S'){
+    server.write("S");
+  }
+  if(str == '1'){
+    server.write("P1000");
+  }
+  if(str == '2'){
+    server.write("P1500");
+  }
+  if(str == '3'){
+    server.write("P2000");
+  }
+  if(str == 'a'){
+    server.write("L0,255,0,0");
+  }
+  if(str == 'b'){
+    server.write("L1,0,66,0");
+  }
+  if(str == 'c'){
+    server.write("L2,0,44,0");
+  }
+  if(str == 'd'){
+    server.write("L3,0,55,0");
+  }
+  // if(str == ' '){
+  //   if(sock.listening){
+  //     sock.close();
+  //     console.log('Closing...');
+  //   }else{
+  //     sock.listen(PORT,HOST);
+  //     console.log('listening on ' + HOST +':'+ PORT)
+  //   }
+  // }
   //console.log("s" + str)
   //console.log("k" + key)
 })
